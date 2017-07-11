@@ -25,15 +25,11 @@
 <script src="bower_components/kurento-client/js/kurento-client.js"></script>
 <script src="bower_components/kurento-utils/js/kurento-utils.js"></script>
 
-<script src="./js/caller.js"></script>
+<script src="js/index.js"></script>
 <title>Kurento Tutorial: Recorder</title>
 </head>
 <body>
 	<div class="container">
-		<div class="form-group">
-			<label for="offer_answer">Offer & Answer :</label>
-			<textarea class="form-control" rows="35" id="offer_answer"></textarea>
-		</div>
 		<div class="row">
 			<div class="col-md-5">
 				<h3>Local stream</h3>
@@ -41,16 +37,30 @@
 					poster="img/webrtc.png"></video>
 			</div>
 			<div class="col-md-2">
-				<a id="call" href="#" class="btn btn-success"> <span
-					class="glyphicon glyphicon-play"></span> Call
-				</a> <br /> <br /> <a id="answer" href="#" class="btn btn-danger"> <span
-					class="glyphicon glyphicon-stop"></span> Answer
+				<a id="start" href="#" class="btn btn-success"> <span
+					class="glyphicon glyphicon-play"></span> Start
+				</a> <br /> <br /> <a id="stop" href="#" class="btn btn-danger"> <span
+					class="glyphicon glyphicon-stop"></span> Stop
+				</a> <br /> <br /> <a id="play" href="#" class="btn btn-warning"> <span
+					class="glyphicon glyphicon-play"></span> Play
 				</a>
 			</div>
 			<div class="col-md-5">
 				<h3>Remote stream</h3>
 				<video id="videoOutput1" autoplay width="480px" height="360px"
 					poster="img/webrtc.png"></video>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-5">
+				<h3>Local stream</h3>
+				<video id="videoInput2" autoplay width="480px" height="360px"
+					   poster="img/webrtc.png"></video>
+			</div>
+			<div class="col-md-5">
+				<h3>Remote stream</h3>
+				<video id="videoOutput2" autoplay width="480px" height="360px"
+					   poster="img/webrtc.png"></video>
 			</div>
 		</div>
 		<div class="row">

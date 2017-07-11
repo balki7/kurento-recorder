@@ -133,25 +133,29 @@ function startRecording() {
     });
 
     var onOfferReceived = function(local, remote, offer){
+        setTimeout(function() {
         local.peer.processOffer(offer, function (error, answer) {
             if (error) return onError(error);
 
             console.log("offer");
 
             local.endpoint.gatherCandidates(onError);
-            remote.peer.processAnswer(answer, function(){
-                 remote.client.connect(remote.endpoint, remote.recorder, function(error) {
-                     if (error) return onError(error);
 
-                     console.log("Connected");
+            setTimeout(function() {
+                remote.peer.processAnswer(answer, function () {
+                    remote.client.connect(remote.endpoint, remote.recorder, function (error) {
+                        if (error) return onError(error);
 
-                     remote.recorder.record(function(error) {
-                         if (error) return onError(error);
-                         console.log("record");
-                     });
-                 });
-            });
-            
+                        console.log("Connected");
+
+                        remote.recorder.record(function (error) {
+                            if (error) return onError(error);
+                            console.log("record");
+                        });
+                    });
+                });
+            }, 5000);
+
             local.client.connect(local.endpoint, local.recorder, function(error) {
                      if (error) return onError(error);
 
@@ -163,6 +167,7 @@ function startRecording() {
                      });
             });
         });
+        }, 5000);
     }
 }
 
