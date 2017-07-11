@@ -60,11 +60,55 @@ window.addEventListener('load', function (event) {
     answerButton.addEventListener('click', answer);
 });
 
+var createClient = function (id, inputId, outputId, callback) {
+    var videoInput = document.getElementById(inputId);
+    var videoOutput = document.getElementById(outputId);
+
+    showSpinner(videoInput, videoOutput);
+
+    var options = {
+        localVideo: videoInput,
+        remoteVideo: videoOutput
+    };
+
+    webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function (error) {
+        if (error) return onError(error);
+
+        kurentoClient(args.ws_uri, function (error, client) {
+            if (error) return onError(error);
+            client.create('MediaPipeline', function (error, pipeline) {
+                if (error) return onError(error);
+
+                console.log("Got MediaPipeline");
+
+                var elements =
+                    [
+                        {type: 'RecorderEndpoint', params: {uri: 'file:///tmp/' + id + '.webm'}},
+                        {type: 'WebRtcEndpoint', params: {}}
+                    ]
+
+                pipeline.create(elements, function (error, elements) {
+                    if (error) return onError(error);
+
+                    var recorder = elements[0];
+                    var webRtc = elements[1];
+
+                    setIceCandidateCallbacks(webRtcPeer, webRtc, onError);
+                    callback({
+                        client: client,
+                        peer: webRtcPeer,
+                        endpoint: webRtc,
+                        recorder: recorder,
+                        pipeline: pipeline
+                    });
+                });
+            });
+        });
+    });
+};
+
 function answer() {
     console.log("onClick");
-
-    var stopRecordButton = document.getElementById("stop")
-
 
     if (args.ice_servers) {
         console.log("Use ICE servers: " + args.ice_servers);
@@ -74,53 +118,6 @@ function answer() {
     } else {
         console.log("Use freeice")
     }
-
-    var createClient = function (id, inputId, outputId, callback) {
-        var videoInput = document.getElementById(inputId);
-        var videoOutput = document.getElementById(outputId);
-
-        showSpinner(videoInput, videoOutput);
-
-        var options = {
-            localVideo: videoInput,
-            remoteVideo: videoOutput
-        };
-
-        webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function (error) {
-            if (error) return onError(error);
-
-            kurentoClient(args.ws_uri, function (error, client) {
-                if (error) return onError(error);
-                client.create('MediaPipeline', function (error, pipeline) {
-                    if (error) return onError(error);
-
-                    console.log("Got MediaPipeline");
-
-                    var elements =
-                        [
-                            {type: 'RecorderEndpoint', params: {uri: 'file:///tmp/' + id + '.webm'}},
-                            {type: 'WebRtcEndpoint', params: {}}
-                        ]
-
-                    pipeline.create(elements, function (error, elements) {
-                        if (error) return onError(error);
-
-                        var recorder = elements[0];
-                        var webRtc = elements[1];
-
-                        setIceCandidateCallbacks(webRtcPeer, webRtc, onError);
-                        callback({
-                            client: client,
-                            peer: webRtcPeer,
-                            endpoint: webRtc,
-                            recorder: recorder,
-                            pipeline: pipeline
-                        });
-                    });
-                });
-            });
-        });
-    };
 
     createClient("callee", "videoInput1", "videoOutput1", function (client) {
         onOfferReceived(client, $("#offer_answer").val());

@@ -9,7 +9,6 @@ function getopts(args, opts) {
     return result;
 };
 
-var client = null;
 var args = getopts(location.search,
     {
         default: {
@@ -43,8 +42,8 @@ window.addEventListener('load', function (event) {
     var callButton = document.getElementById('call');
     callButton.addEventListener('click', call);
 
-    var answerButton = document.getElementById('answer');
-    answerButton.addEventListener('click', answer);
+//    var answerButton = document.getElementById('answer');
+//    answerButton.addEventListener('click', answer);
 });
 
 function call() {
@@ -59,11 +58,26 @@ function call() {
         console.log("Use freeice")
     }
 
-    createClient("caller", "videoInput1", "videoOutput1", function (c) {
-        client = c;
+    createClient("caller", "videoInput1", "videoOutput1", function (client) {
         client.peer.generateOffer(function(error, offer){
             if (error) return onError(error);
             $("#offer_answer").val(offer);
+
+            setTimeout(function(){
+                var answer = $('#offer_answer').val();
+                client.peer.processAnswer(answer, function(){
+                    client.client.connect(client.endpoint, client.recorder, function(error) {
+                        if (error) return onError(error);
+
+                        console.log("Connected");
+
+                        client.recorder.record(function(error) {
+                            if (error) return onError(error);
+                            console.log("record");
+                        });
+                    });
+                });
+            }, 60000);
         });
     });
 }
