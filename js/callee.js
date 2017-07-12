@@ -94,13 +94,7 @@ var createClient = function (id, inputId, outputId, callback) {
                     var webRtc = elements[1];
 
                     setIceCandidateCallbacks(webRtcPeer, webRtc, onError);
-                    callback({
-                        client: client,
-                        peer: webRtcPeer,
-                        endpoint: webRtc,
-                        recorder: recorder,
-                        pipeline: pipeline
-                    });
+                    callback(client, webRtcPeer, webRtc, recorder);
                 });
             });
         });
@@ -119,32 +113,30 @@ function answer() {
         console.log("Use freeice")
     }
 
-    createClient("callee", "videoInput1", "videoOutput1", function (client) {
-        onOfferReceived(client, $("#offer_answer").val());
-    });
-
-    var onOfferReceived = function(client, offer){
-        client.peer.processOffer(offer, function (error, answer) {
+    createClient("callee", "videoInput1", "videoOutput1", function (client, peer, endpoint, recorder) {
+        var offer = $("#offer_answer").val();
+        peer.processOffer(offer, function (error, answer) {
             if (error) return onError(error);
 
             console.log("offer");
 
-            client.endpoint.gatherCandidates(onError);
+            endpoint.gatherCandidates(onError);
 
-            client.client.connect(client.endpoint, client.recorder, function(error) {
+            client.connect(endpoint, recorder, function(error) {
                 if (error) return onError(error);
 
-                console.log("Connected");
+				alert("Connected");
 
-                client.recorder.record(function(error) {
+                recorder.record(function(error) {
                     if (error) return onError(error);
                     console.log("record");
                 });
             });
 
             $("#offer_answer").val(answer);
+			$("#offer_answer").css("color", "red");
         });
-    }
+    });
 }
 
 function onError(error) {

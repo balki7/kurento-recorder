@@ -58,46 +58,29 @@ function call() {
         console.log("Use freeice")
     }
 
-    createClient("caller", "videoInput1", "videoOutput1", function (client) {
-        client.peer.generateOffer(function(error, offer){
+    createClient("caller", "videoInput1", "videoOutput1", function (client, peer, endpoint, recorder) {
+        peer.generateOffer(function(error, offer){
             if (error) return onError(error);
             $("#offer_answer").val(offer);
 
             setTimeout(function(){
                 var answer = $('#offer_answer').val();
-                client.peer.processAnswer(answer, function(){
-                    client.client.connect(client.endpoint, client.recorder, function(error) {
-                        if (error) return onError(error);
+                peer.processAnswer(answer, function(){
+					client.connect(endpoint, recorder, function(error) {
+						if (error) return onError(error);
 
-                        console.log("Connected");
+						alert("Connected");
 
-                        client.recorder.record(function(error) {
-                            if (error) return onError(error);
-                            console.log("record");
-                        });
-                    });
+						recorder.record(function(error) {
+							if (error) return onError(error);
+							console.log("record");
+						});
+					});
                 });
-            }, 60000);
+            }, 20000);
         });
     });
 }
-
-function answer (){
-    var answer = $('#offer_answer').val();
-
-    client.peer.processAnswer(answer, function(){
-        client.client.connect(client.endpoint, client.recorder, function(error) {
-            if (error) return onError(error);
-
-            console.log("Connected");
-
-            client.recorder.record(function(error) {
-                if (error) return onError(error);
-                console.log("record");
-            });
-        });
-    });
-};
 
 var createClient = function (id, inputId, outputId, callback) {
     var videoInput = document.getElementById(inputId);
@@ -133,13 +116,7 @@ var createClient = function (id, inputId, outputId, callback) {
                     var webRtc = elements[1];
 
                     setIceCandidateCallbacks(webRtcPeer, webRtc, onError);
-                    callback({
-                        client: client,
-                        peer: webRtcPeer,
-                        endpoint: webRtc,
-                        recorder: recorder,
-                        pipeline: pipeline
-                    });
+                    callback(client, webRtcPeer, webRtc, recorder);
                 });
             });
         });
