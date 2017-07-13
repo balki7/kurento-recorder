@@ -1,22 +1,6 @@
-function getopts(args, opts) {
-    var result = opts.default || {};
-    args.replace(
-        new RegExp("([^?=&]+)(=([^&]*))?", "g"),
-        function ($0, $1, $2, $3) {
-            result[$1] = decodeURI($3);
-        });
+var ws_uri = 'wss://172.19.14.231:8433/kurento';
+var file_uri = 'file:///tmp/caller_recorder_demo.webm';
 
-    return result;
-};
-
-var args = getopts(location.search,
-    {
-        default: {
-            ws_uri: 'wss://' + location.hostname + ':8433/kurento',
-            file_uri: 'file:///tmp/caller_recorder_demo.webm', // file to be stored in media server
-            ice_servers: undefined
-        }
-    });
 
 function setIceCandidateCallbacks(webRtcPeer, webRtcEp, onerror) {
     webRtcPeer.on('icecandidate', function (candidate) {
@@ -46,15 +30,6 @@ window.addEventListener('load', function (event) {
 function call() {
     console.log("onClick");
 
-    if (args.ice_servers) {
-        console.log("Use ICE servers: " + args.ice_servers);
-        options.configuration = {
-            iceServers: JSON.parse(args.ice_servers)
-        };
-    } else {
-        console.log("Use freeice")
-    }
-
     createClient("caller", "videoInput1", "videoOutput1", function (client, peer, endpoint, recorder) {
         peer.generateOffer(function(error, offer){
             if (error) return onError(error);
@@ -63,14 +38,15 @@ function call() {
             var answerButton = document.getElementById('answer');
             answerButton.addEventListener('click', function(){
                 var answer = $('#offer_answer').val();
+
                 peer.processAnswer(answer, function(){
-                    client.connect(endpoint, function(error) {
+                    client.connect(endpoint, recorder, function(error) {
                         if (error) return onError(error);
 
-                        alert("Connected");
-                        //recorder.record(function(error) {
-                          //  if (error) return onError(error);
-                        //});
+                        // recorder.record(function(error) {
+                        //     if (error) return onError(error);
+                        //     alert("Connected");
+                        // });
                     });
                 });
             });
@@ -92,7 +68,7 @@ var createClient = function (id, inputId, outputId, callback) {
     webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function (error) {
         if (error) return onError(error);
 
-        kurentoClient(args.ws_uri, function (error, client) {
+        kurentoClient(ws_uri, function (error, client) {
             if (error) return onError(error);
             client.create('MediaPipeline', function (error, pipeline) {
                 if (error) return onError(error);
@@ -101,7 +77,7 @@ var createClient = function (id, inputId, outputId, callback) {
 
                 var elements =
                     [
-                        {type: 'RecorderEndpoint', params: {uri: 'file:///tmp/' + id + '.webm'}},
+                        {type: 'RecorderEndpoint', params: {uri: file_uri}},
                         {type: 'WebRtcEndpoint', params: {}}
                     ]
 

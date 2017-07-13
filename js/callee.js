@@ -1,39 +1,5 @@
-/*
- * (C) Copyright 2014-2015 Kurento (http://kurento.org/)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
-function getopts(args, opts) {
-    var result = opts.default || {};
-    args.replace(
-        new RegExp("([^?=&]+)(=([^&]*))?", "g"),
-        function ($0, $1, $2, $3) {
-            result[$1] = decodeURI($3);
-        });
-
-    return result;
-};
-
-var args = getopts(location.search,
-    {
-        default: {
-            ws_uri: 'wss://' + location.hostname + ':8433/kurento',
-            file_uri: 'file:///tmp/callee_recorder_demo.webm', // file to be stored in media server
-            ice_servers: undefined
-        }
-    });
+var ws_uri = 'wss://172.19.14.231:8433/kurento';
+var file_uri = 'file:///tmp/callee_recorder_demo.webm';
 
 function setIceCandidateCallbacks(webRtcPeer, webRtcEp, onerror) {
     webRtcPeer.on('icecandidate', function (candidate) {
@@ -74,7 +40,7 @@ var createClient = function (id, inputId, outputId, callback) {
     webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function (error) {
         if (error) return onError(error);
 
-        kurentoClient(args.ws_uri, function (error, client) {
+        kurentoClient(ws_uri, function (error, client) {
             if (error) return onError(error);
             client.create('MediaPipeline', function (error, pipeline) {
                 if (error) return onError(error);
@@ -83,7 +49,7 @@ var createClient = function (id, inputId, outputId, callback) {
 
                 var elements =
                     [
-                        {type: 'RecorderEndpoint', params: {uri: 'file:///tmp/' + id + '.webm'}},
+                        {type: 'RecorderEndpoint', params: {uri: file_uri}},
                         {type: 'WebRtcEndpoint', params: {}}
                     ]
 
@@ -105,35 +71,24 @@ var createClient = function (id, inputId, outputId, callback) {
 function answer() {
     console.log("onClick");
 
-    if (args.ice_servers) {
-        console.log("Use ICE servers: " + args.ice_servers);
-        options.configuration = {
-            iceServers: JSON.parse(args.ice_servers)
-        };
-    } else {
-        console.log("Use freeice")
-    }
-
     createClient("callee", "videoInput1", "videoOutput1", function (client, peer, endpoint, recorder) {
         var offer = $("#offer_answer").val();
         peer.processOffer(offer, function (error, answer) {
             if (error) return onError(error);
 
-            console.log("offer");
-
             endpoint.gatherCandidates(onError);
 
-            client.connect(endpoint, endpoint, recorder, function(error) {
+            client.connect(endpoint, recorder, function(error) {
                 if (error) return onError(error);
 
-                recorder.record(function(error) {
-                    if (error) return onError(error);
-                    alert("Connected");
-                });
+                // recorder.record(function(error) {
+                //     if (error) return onError(error);
+                //     alert("Connected");
+                // });
             });
 
             $("#offer_answer").val(answer);
-			$("#offer_answer").css("color", "red");
+            $("#offer_answer").css("color", "red");
         });
     });
 }
