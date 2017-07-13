@@ -13,7 +13,7 @@ var args = getopts(location.search,
     {
         default: {
             ws_uri: 'wss://' + location.hostname + ':8433/kurento',
-            file_uri: 'file:///tmp/recorder_demo.webm', // file to be stored in media server
+            file_uri: 'file:///tmp/caller_recorder_demo.webm', // file to be stored in media server
             ice_servers: undefined
         }
     });
@@ -41,9 +41,6 @@ window.addEventListener('load', function (event) {
 
     var callButton = document.getElementById('call');
     callButton.addEventListener('click', call);
-
-//    var answerButton = document.getElementById('answer');
-//    answerButton.addEventListener('click', answer);
 });
 
 function call() {
@@ -63,21 +60,20 @@ function call() {
             if (error) return onError(error);
             $("#offer_answer").val(offer);
 
-            setTimeout(function(){
+            var answerButton = document.getElementById('answer');
+            answerButton.addEventListener('click', function(){
                 var answer = $('#offer_answer').val();
                 peer.processAnswer(answer, function(){
-					client.connect(endpoint, recorder, function(error) {
-						if (error) return onError(error);
+                    client.connect(endpoint, function(error) {
+                        if (error) return onError(error);
 
-						alert("Connected");
-
-						recorder.record(function(error) {
-							if (error) return onError(error);
-							console.log("record");
-						});
-					});
+                        alert("Connected");
+                        //recorder.record(function(error) {
+                          //  if (error) return onError(error);
+                        //});
+                    });
                 });
-            }, 20000);
+            });
         });
     });
 }
@@ -116,6 +112,7 @@ var createClient = function (id, inputId, outputId, callback) {
                     var webRtc = elements[1];
 
                     setIceCandidateCallbacks(webRtcPeer, webRtc, onError);
+
                     callback(client, webRtcPeer, webRtc, recorder);
                 });
             });
@@ -124,21 +121,13 @@ var createClient = function (id, inputId, outputId, callback) {
 };
 
 function onError(error) {
-    if (error) console.log(error);
+    if (error) console.error(error);
 }
 
 function showSpinner() {
     for (var i = 0; i < arguments.length; i++) {
         arguments[i].poster = 'img/transparent-1px.png';
         arguments[i].style.background = "center transparent url('img/spinner.gif') no-repeat";
-    }
-}
-
-function hideSpinner() {
-    for (var i = 0; i < arguments.length; i++) {
-        arguments[i].src = '';
-        arguments[i].poster = 'img/webrtc.png';
-        arguments[i].style.background = '';
     }
 }
 

@@ -30,7 +30,7 @@ var args = getopts(location.search,
     {
         default: {
             ws_uri: 'wss://' + location.hostname + ':8433/kurento',
-            file_uri: 'file:///tmp/recorder_demo.webm', // file to be stored in media server
+            file_uri: 'file:///tmp/callee_recorder_demo.webm', // file to be stored in media server
             ice_servers: undefined
         }
     });
@@ -94,6 +94,7 @@ var createClient = function (id, inputId, outputId, callback) {
                     var webRtc = elements[1];
 
                     setIceCandidateCallbacks(webRtcPeer, webRtc, onError);
+
                     callback(client, webRtcPeer, webRtc, recorder);
                 });
             });
@@ -122,14 +123,12 @@ function answer() {
 
             endpoint.gatherCandidates(onError);
 
-            client.connect(endpoint, recorder, function(error) {
+            client.connect(endpoint, endpoint, recorder, function(error) {
                 if (error) return onError(error);
-
-				alert("Connected");
 
                 recorder.record(function(error) {
                     if (error) return onError(error);
-                    console.log("record");
+                    alert("Connected");
                 });
             });
 
@@ -140,21 +139,13 @@ function answer() {
 }
 
 function onError(error) {
-    if (error) console.log(error);
+    if (error) console.error(error);
 }
 
 function showSpinner() {
     for (var i = 0; i < arguments.length; i++) {
         arguments[i].poster = 'img/transparent-1px.png';
         arguments[i].style.background = "center transparent url('img/spinner.gif') no-repeat";
-    }
-}
-
-function hideSpinner() {
-    for (var i = 0; i < arguments.length; i++) {
-        arguments[i].src = '';
-        arguments[i].poster = 'img/webrtc.png';
-        arguments[i].style.background = '';
     }
 }
 
